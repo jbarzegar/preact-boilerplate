@@ -1,3 +1,4 @@
+/* eslint-disable */
 import webpack from 'webpack';
 import ExtractTextPlugin from 'extract-text-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
@@ -21,7 +22,7 @@ module.exports = {
 	},
 
 	resolve: {
-		extensions: ['.jsx', '.js', '.json', '.less'],
+		extensions: ['.jsx', '.js', '.json', '.scss'],
 		modules: [
 			path.resolve(__dirname, "src/lib"),
 			path.resolve(__dirname, "node_modules"),
@@ -41,7 +42,7 @@ module.exports = {
 				test: /\.jsx?$/,
 				exclude: path.resolve(__dirname, 'src'),
 				enforce: 'pre',
-				use: 'source-map-loader'
+				use: ['source-map-loader', 'eslint-loader']
 			},
 			{
 				test: /\.jsx?$/,
@@ -49,33 +50,38 @@ module.exports = {
 				use: 'babel-loader'
 			},
 			{
-				// Transform our own .(less|css) files with PostCSS and CSS-modules
-				test: /\.(less|css)$/,
+				// Transform our own .(scss|css) files with PostCSS and CSS-modules
+				test: /\.(scss|css)$/,
 				include: [path.resolve(__dirname, 'src/components')],
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: [
             {
               loader: 'css-loader',
-              options: { modules: true, sourceMap: true, importLoaders: 1 }
+              options: { modules: true, sourceMap: true, importLoaders: 2 }
             },
             {
               loader: `postcss-loader`,
               options: {
                 plugins: () => {
                   autoprefixer({ browsers: [ 'last 2 versions' ] });
+									require('stylelint')({
+										extends: 'stylelint-config-sass-guidelines'
+									});
+									require('rucksack-css')();
+									require('css-mqpacker')();
                 }
               }
             },
-            { 
-              loader: 'less-loader',
+            {
+              loader: 'sass-loader',
               options: { sourceMap: true }
             }
           ]
         })
 			},
 			{
-				test: /\.(less|css)$/,
+				test: /\.(scss|css)$/,
 				exclude: [path.resolve(__dirname, 'src/components')],
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
@@ -89,11 +95,16 @@ module.exports = {
               options: {
                 plugins: () => {
                   autoprefixer({ browsers: [ 'last 2 versions' ] });
+									require('stylelint')({
+										extends: 'stylelint-config-sass-guidelines'
+									});
+									require('rucksack-css')();
+									require('css-mqpacker')();
                 }
               }
             },
-            { 
-              loader: 'less-loader',
+            {
+              loader: 'sass-loader',
               options: { sourceMap: true }
             }
           ]
@@ -200,7 +211,7 @@ module.exports = {
 	devtool: ENV==='production' ? 'source-map' : 'cheap-module-eval-source-map',
 
 	devServer: {
-		port: process.env.PORT || 8080,
+		port: process.env.PORT || 3000,
 		host: 'localhost',
 		publicPath: '/',
 		contentBase: './src',
